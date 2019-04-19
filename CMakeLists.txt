@@ -8,7 +8,9 @@ project(cozmonaut)
 
 set(cozmo_SRC_FILES
         src/log.c
+        src/logging.c
         src/main.c
+        src/service.c
         )
 
 add_executable(cozmo ${cozmo_SRC_FILES})

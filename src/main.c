@@ -3,8 +3,10 @@
  * Copyright 2019 The Cozmonaut Contributors
  */
 
-#include <stdio.h>
+#include "logging.h"
+#include "service.h"
 
 int main() {
-  printf("Hello, world!\n");
+  service_start(SERVICE_LOGGING);
+  service_stop(SERVICE_LOGGING);
 }

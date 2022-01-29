@@ -4,9 +4,53 @@
  */
 
 #include <stdio.h>
+
 #include "log.h"
+#include "logging.h"
+#include "service.h"
+
+/** Whether or not logging is blocked. */
+static __thread int blocked;
+
+/** A handle to the logging context. */
+static __thread void* context;
 
 void log_submit(struct log_sub* sub) {
+  // If blocked, ignore the submission
+  if (blocked) {
+    return;
+  }
+
+  // If we don't yet have a context on this thread
+  if (!context) {
+    // Block all logging on this thread
+    // This prevents infinite loops of logs about logs
+    blocked = 1;
+
+    // Register for a logging context on this thread
+    // This is a relatively expensive operation (mutexes and mallocs), but it only happens once per thread
+    service_call(SERVICE_LOGGING, logging_call_register, NULL, &context);
+
+    // If context is still unavailable
+    if (!context) {
+      // Resort to stderr for error reporting
+      fprintf(stderr, "unable to register logging context\n");
+      return;
+    }
+
+    // Unblock logging
+    blocked = 0;
+  }
+
+  // The log record
+  struct log_record rec = {
+    .fmt = "asdf?",
+  };
+
+  // Submit the log record
+  service_call(SERVICE_LOGGING, logging_call_record, &rec, &context);
+
+  /*
   printf("Got a submission...\n");
   printf("  fmt: %s\n", sub->msg_fmt);
 
@@ -67,4 +111,5 @@ void log_submit(struct log_sub* sub) {
   }
 
   printf("\n");
+  */
 }

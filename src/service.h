@@ -6,6 +6,13 @@
 #ifndef SERVICE_H
 #define SERVICE_H
 
+/** The state of a service. */
+enum service_state {
+  service_state_ready = 0,
+  service_state_started,
+  service_state_stopped,
+};
+
 /**
  * A service definition.
  *
@@ -31,7 +38,31 @@ struct service {
    * @param svc The service
    */
   void (* on_stopping)(struct service* svc);
+
+  /**
+   * Called when the service is called.
+   *
+   * @param svc The service
+   * @param func The function name
+   * @param arg A function argument
+   * @param ret A function argument
+   */
+  void (* call)(struct service* svc, int func, void* arg, void** ret);
+
+  /** @private */
+  enum service_state _state;
 };
+
+/**
+ * Call a service.
+ *
+ * @param svc The service definition
+ * @param func The function name
+ * @param arg A function argument
+ * @param ret A function argument
+ * @return Zero on success, otherwise nonzero
+ */
+int service_call(struct service* svc, int func, void* arg, void** ret);
 
 /**
  * Start a service.
